@@ -2,7 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>7.2</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.0</Version>
+    <Authors>Krzysztof Cwalina</Authors>
+    <Company />
+    <Description>.NET library for building parsers</Description>
+    <PackageLicenseUrl>https://github.com/kcwalina/langbuilder/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/kcwalina/langbuilder</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kcwalina/langbuilder</RepositoryUrl>
+    <PackageTags>C#, .NET, lexer</PackageTags>
+    <SignAssembly>true</SignAssembly>
+    <DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>langbuilder.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <Import Project="..\lexer\lexer.projitems" Label="Shared" />
