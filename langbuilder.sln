@@ -5,16 +5,16 @@ VisualStudioVersion = 15.0.28124.53
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj", "{A1D215EC-8705-491A-92B7-27E52FF3A5F0}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "lexer", "lexer\lexer.shproj", "{E2B9AC57-56F4-45E8-ACB0-7001A057A364}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "langbuilder", "langbuilder\langbuilder.csproj", "{F0A83CEB-0580-4EDC-A21C-72C0F7958F70}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "langbuilder_src", "shared\langbuilder_src.shproj", "{E2B9AC57-56F4-45E8-ACB0-7001A057A364}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "alan", "alan\alan.csproj", "{4778A847-65A7-4D1F-827A-BB78EC30F5D9}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		lexer\lexer.projitems*{4778a847-65a7-4d1f-827a-bb78ec30f5d9}*SharedItemsImports = 4
-		lexer\lexer.projitems*{e2b9ac57-56f4-45e8-acb0-7001a057a364}*SharedItemsImports = 13
+		shared\langbuilder_src.projitems*{4778a847-65a7-4d1f-827a-bb78ec30f5d9}*SharedItemsImports = 4
+		shared\langbuilder_src.projitems*{e2b9ac57-56f4-45e8-acb0-7001a057a364}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

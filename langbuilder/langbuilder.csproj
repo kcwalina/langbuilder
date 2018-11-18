@@ -14,10 +14,10 @@
     <PackageTags>C#, .NET, lexer</PackageTags>
     <SignAssembly>true</SignAssembly>
     <DelaySign>false</DelaySign>
-    <AssemblyOriginatorKeyFile>langbuilder.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>langbuilder.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <Import Project="..\lexer\lexer.projitems" Label="Shared" />
+  <Import Project="..\shared\langbuilder_src.projitems" Label="Shared" />
 
   <ItemGroup>
     <PackageReference Include="System.Memory" Version="4.5.1" />

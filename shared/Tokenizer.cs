@@ -12,7 +12,7 @@ namespace langbuilder.Lexer.Tokenizers
     {
         public override (int consumed, Token token) Tokenize(ReadOnlyMemory<char> source)
         {
-            if (source.Length == 0) return (1, Symbol.EOF);
+            if (source.Length == 0) return (1, Token.EOF);
             return (0, default);
         }
     }
@@ -23,8 +23,8 @@ namespace langbuilder.Lexer.Tokenizers
         public override (int consumed, Token token) Tokenize(ReadOnlyMemory<char> source)
         {
             var span = source.Span;
-            if (span.Length > 0 && span[0] == '\n') return (1, Symbol.EOL);
-            if (span.Length > 1 && span[0] == '\n' && span[1] == '\r') return (2, Symbol.EOL);
+            if (span.Length > 0 && span[0] == '\n') return (1, Token.EOL);
+            if (span.Length > 1 && span[0] == '\r' && span[1] == '\n') return (2, Token.EOL);
             return (0, default);
         }
     }

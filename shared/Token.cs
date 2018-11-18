@@ -6,6 +6,7 @@ namespace langbuilder.Lexer
 {
     public enum TokenKind : byte
     {
+        Other,
         String,
         Identifier,
         Whitespace,
@@ -14,6 +15,8 @@ namespace langbuilder.Lexer
         Unsigned,
         Signed,
         Double,
+        EOL,
+        EOF,
     }
 
     public enum Symbol : byte
@@ -44,8 +47,6 @@ namespace langbuilder.Lexer
         CommentOpen,
         CommentClose,
 
-        EOL,
-        EOF,
         Plus,
         Minus,
         Exclamation,
@@ -159,6 +160,9 @@ namespace langbuilder.Lexer
         }
 
         public static implicit operator Token(Symbol symbol) => new Token(symbol);
+
+        public static readonly Token EOL = new Token(TokenKind.EOL, ReadOnlyMemory<char>.Empty);
+        public static readonly Token EOF = new Token(TokenKind.EOF, ReadOnlyMemory<char>.Empty);
 
         public bool Equals(Token other)
         {

@@ -44,10 +44,10 @@ namespace langbuilder.Lexer
                         token.SourceLocation = sourceLocation;
                         sourceLocation.Advance(consumed);
 
-                        if (token.Kind != TokenKind.Whitespace || settings.KeepWhitespace) tokens.Add(token);
-                        if (token.Symbol == Symbol.EOF) return tokens.ToArray();
-                        if (token.Symbol == Symbol.EOL) sourceLocation.AdvanceLine();
-
+                        if (token.Kind == TokenKind.EOF) return tokens.ToArray();
+                        else if (token.Kind == TokenKind.EOL) sourceLocation.AdvanceLine();
+                        else if (token.Kind != TokenKind.Whitespace || settings.KeepWhitespace) tokens.Add(token);
+                        
                         source = source.Slice(consumed);
 
                         break;
