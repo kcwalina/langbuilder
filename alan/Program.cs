@@ -3,6 +3,83 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+class CGenerator
+{
+    FxProgram _program;
+    string _directory;
+
+    public void Generate(string directory, FxProgram program)
+    {
+        _program = program;
+        _directory = directory;
+        if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+        using (TextWriter writer = new StreamWriter(Path.Combine(directory, "main.c"))) {
+            writer.WriteLine(@"#include <stdio.h>");
+            writer.WriteLine();
+
+
+            foreach (var type in program.Types) {
+                throw new NotImplementedException();
+            }
+
+            foreach (var function in program.Functions) {
+                Generate(writer, function);
+            }
+        }
+    }
+
+    public void Generate(TextWriter writer, FxFunction function)
+    {
+        if (function.Parameters != null) throw new NotImplementedException();
+        writer.Write(function.ReturnType);
+        writer.Write(' ');
+        writer.Write(function.Name);
+        writer.Write('(');
+        writer.WriteLine(") {");
+        Generate(writer, function.Body.Statements);
+        writer.WriteLine('}');
+    }
+
+    public void Generate(TextWriter writer, IReadOnlyList<FxStatement> statements)
+    {
+        foreach(var statement in statements) {
+            GenerateStatement(writer, statement);
+        }
+    }
+
+    public void GenerateStatement(TextWriter writer, FxStatement statement)
+    {
+        statement = Alias(statement);
+        writer.Write('\t');
+        writer.Write(statement.Function);
+        writer.Write('(');
+        Generate(writer, statement.Arguments);
+        writer.WriteLine(");");
+    }
+
+    public void Generate(TextWriter writer, IReadOnlyList<FxArgument> arguments)
+    {
+        bool first = true;
+        foreach(var argument in arguments) {
+            if (first) first = false;
+            else writer.Write(", ");
+            writer.Write(argument);
+        }
+    }
+
+    FxStatement Alias(FxStatement original)
+    {
+        if(original.Function == "write") {
+            var arguments = new List<FxArgument>();
+            arguments.Add(new FxArgument("\"%s\""));
+            arguments.AddRange(original.Arguments);
+            return new FxStatement("printf".AsMemory(), arguments);
+        }
+        return original;
+    }
+}
+
 class Alan
 {
     static void Main(string[] args)
@@ -16,6 +93,10 @@ class Alan
         if(!TryParseProgram(ref tokens, out FxProgram program)) {
             Console.WriteLine("Error");
         }
+
+        var generator = new CGenerator();
+        
+        generator.Generate(@".\src\c\", program);
         Console.ReadLine();
     }
 
@@ -77,7 +158,7 @@ class Alan
         if (!TryParseArgumentList(ref tokensCopy, ast, out List<FxArgument> arguments)) return false;
         if (!TryParseSymbol(ref tokensCopy, Symbol.Semicolon)) return false;
         tokens = tokensCopy;
-        statement = new FxStatement(functionName, arguments);
+        statement = new FxStatement(functionName.Text, arguments);
         return true;
     }
 
@@ -97,6 +178,8 @@ class Alan
         if (!TryParseExpression(ref tokensCopy, ast, out FxExpression expression)) return false;
         if (!TryParseSymbol(ref tokensCopy, Symbol.ParenthesisClose)) return false;
         tokens = tokensCopy;
+        arguments = new List<FxArgument>();
+        arguments.Add(new FxArgument(expression.ToString()));
         return true;
     }
 
@@ -160,20 +243,25 @@ class FxProgram
 }
 class FxFunction
 {
-    private Token _functionName;
+    private Token _name;
     private FxTypeReference _returnType;
     private List<FxParameter> _parameters;
-    private FxScope _functionBody;
+    private FxScope _body;
 
     public FxFunction(Token functionName, FxTypeReference returnType, List<FxParameter> parameters, FxScope functionBody)
     {
-        _functionName = functionName;
+        _name = functionName;
         _returnType = returnType;
         _parameters = parameters;
-        _functionBody = functionBody;
+        _body = functionBody;
     }
 
-    public override string ToString() => _functionName.Text.ToString();
+    public string Name => _name.Text.ToString();
+    public string ReturnType => _returnType.Name;
+    public IReadOnlyList<FxParameter> Parameters => _parameters;
+    public FxScope Body => _body;
+
+    public override string ToString() => _name.Text.ToString();
 }
 
 class FxType
@@ -191,16 +279,19 @@ class FxExpression
 }
 class FxStatement
 {
-    Token _functionName;
+    ReadOnlyMemory<char> _functionName;
     List<FxArgument> _arguments;
 
-    public FxStatement(Token functionName, List<FxArgument> arguments)
+    public FxStatement(ReadOnlyMemory<char> functionName, List<FxArgument> arguments)
     {
         _functionName = functionName;
         _arguments = arguments;
     }
 
-    public override string ToString() => _functionName.Text.ToString();
+    public string Function => _functionName.ToString();
+    public IReadOnlyList<FxArgument> Arguments => _arguments;
+
+    public override string ToString() => _functionName.ToString();
 }
 class FxTypeReference
 {
@@ -214,7 +305,14 @@ class FxTypeReference
 
 class FxArgument
 {
+    private string _literal;
 
+    public FxArgument(string literal)
+    {
+        _literal = literal;
+    }
+
+    public override string ToString() => _literal;
 }
 class FxScope
 {
@@ -225,6 +323,7 @@ class FxScope
         _statements.Add(statement);
     }
 
+    public IReadOnlyList<FxStatement> Statements => _statements;
     public override string ToString() => _statements.Count.ToString();
 }
 

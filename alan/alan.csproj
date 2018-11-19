@@ -52,6 +52,9 @@
       <Version>4.5.1</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\src\c\main.c" />
+  </ItemGroup>
   <Import Project="..\shared\langbuilder_src.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
