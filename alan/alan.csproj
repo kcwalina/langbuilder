@@ -38,14 +38,16 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ast.cs" />
+    <Compile Include="Generator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="content\demo.alan">
+    <Content Include="demo.alan">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Memory">
@@ -53,7 +55,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bin\Debug\src\c\main.c" />
+    <Folder Include="bin\Debug\" />
   </ItemGroup>
   <Import Project="..\shared\langbuilder_src.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,127 +1,21 @@
-﻿using langbuilder.Lexer;
+﻿using alan.Ast;
+using alan.Generators;
+using langbuilder.Lexer;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-
-class CGenerator
-{
-    FxProgram _program;
-    string _directory;
-
-    public void Generate(string directory, FxProgram program)
-    {
-        _program = program;
-        _directory = directory;
-        if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-
-        using (TextWriter writer = new StreamWriter(Path.Combine(directory, "main.c"))) {
-            writer.WriteLine(@"#include <stdio.h>");
-            writer.WriteLine();
-
-
-            foreach (var type in program.Types) {
-                throw new NotImplementedException();
-            }
-
-            foreach (var function in program.Functions) {
-                Generate(writer, function);
-            }
-        }
-
-        var clInfo = new ProcessStartInfo();
-        string crt = @"""c:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\ucrt""";
-        string windowsShared    = @"""c:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\shared""";
-        string windowsOther     = @"""c:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\um""";
-        string vsInclude        = @"""c:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\include""";
-
-        clInfo.FileName = "cl.exe";
-        clInfo.Arguments = $" -c /MT /Gz /I {crt} /I {windowsShared} /I {windowsOther} /I {vsInclude} main.c";
-        clInfo.CreateNoWindow = true;
-        clInfo.WorkingDirectory = directory;
-        clInfo.RedirectStandardOutput = true;
-        clInfo.UseShellExecute = false;
-
-        Console.WriteLine($"{clInfo.FileName} {clInfo.Arguments}");
-        var clProcess = Process.Start(clInfo);
-        Console.Out.Write(clProcess.StandardOutput.ReadToEnd());
-        clProcess.WaitForExit();
-
-        string crtLibs  = @"""c:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\ucrt\x86""";
-        string vsLibs   = @"""c:\Program Files(x86)\Microsoft Visual Studio 14.0\VC\lib""";
-        string osLibs   = @"""c:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\x86""";
-        // /LIBPATH:"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\x86"
-        var linkInfo = new ProcessStartInfo();
-        linkInfo.FileName = "link.exe";
-        linkInfo.Arguments = $" /SUBSYSTEM:console main.obj /LIBPATH:{crtLibs} /LIBPATH:{vsLibs} /LIBPATH:{osLibs}";
-        linkInfo.CreateNoWindow = true;
-        linkInfo.WorkingDirectory = directory;
-        linkInfo.RedirectStandardOutput = true;
-        linkInfo.UseShellExecute = false;
-
-        Console.WriteLine($"{linkInfo.FileName} {linkInfo.Arguments}");
-        var linkProcess = Process.Start(linkInfo);
-        Console.Out.Write(clProcess.StandardOutput.ReadToEnd());
-        clProcess.WaitForExit();
-    }
-
-    public void Generate(TextWriter writer, FxFunction function)
-    {
-        if (function.Parameters != null) throw new NotImplementedException();
-        writer.Write(function.ReturnType);
-        writer.Write(' ');
-        writer.Write(function.Name);
-        writer.Write('(');
-        writer.WriteLine(") {");
-        Generate(writer, function.Body.Statements);
-        writer.WriteLine('}');
-    }
-
-    public void Generate(TextWriter writer, IReadOnlyList<FxStatement> statements)
-    {
-        foreach(var statement in statements) {
-            GenerateStatement(writer, statement);
-        }
-    }
-
-    public void GenerateStatement(TextWriter writer, FxStatement statement)
-    {
-        statement = Alias(statement);
-        writer.Write('\t');
-        writer.Write(statement.Function);
-        writer.Write('(');
-        Generate(writer, statement.Arguments);
-        writer.WriteLine(");");
-    }
-
-    public void Generate(TextWriter writer, IReadOnlyList<FxArgument> arguments)
-    {
-        bool first = true;
-        foreach(var argument in arguments) {
-            if (first) first = false;
-            else writer.Write(", ");
-            writer.Write(argument);
-        }
-    }
-
-    FxStatement Alias(FxStatement original)
-    {
-        if(original.Function == "write") {
-            var arguments = new List<FxArgument>();
-            arguments.Add(new FxArgument("\"%s\""));
-            arguments.AddRange(original.Arguments);
-            return new FxStatement("printf".AsMemory(), arguments);
-        }
-        return original;
-    }
-}
 
 class Alan
 {
     static void Main(string[] args)
     {
+        if(args.Length < 1) {
+            Console.WriteLine("alan.exe <filename>");
+            return;
+
+        }
         var lexer = new Lexer();
-        var tokens = lexer.GetTokens(File.ReadAllText(@".\content\demo.alan").AsMemory());
+        var tokens = lexer.GetTokens(File.ReadAllText(args[0]).AsMemory());
 
         if(!TryParseProgram(ref tokens, out FxProgram program)) {
             Console.WriteLine("Error");
@@ -129,7 +23,7 @@ class Alan
 
         var generator = new CGenerator();
         
-        generator.Generate(@".\src\c\", program);
+        generator.Generate(@".", program);
     }
 
     static bool TryParseProgram(ref ReadOnlyMemory<Token> tokens, out FxProgram program)
@@ -267,102 +161,6 @@ class Alan
     }
 }
 
-class FxProgram
-{
-    public readonly List<FxFunction> Functions = new List<FxFunction>();
-    public readonly List<FxType> Types = new List<FxType>();
-    public readonly Dictionary<ReadOnlyMemory<char>,FxTypeReference> References = new Dictionary<ReadOnlyMemory<char>, FxTypeReference>(new StringSliceComparer());
-}
-class FxFunction
-{
-    private Token _name;
-    private FxTypeReference _returnType;
-    private List<FxParameter> _parameters;
-    private FxScope _body;
-
-    public FxFunction(Token functionName, FxTypeReference returnType, List<FxParameter> parameters, FxScope functionBody)
-    {
-        _name = functionName;
-        _returnType = returnType;
-        _parameters = parameters;
-        _body = functionBody;
-    }
-
-    public string Name => _name.Text.ToString();
-    public string ReturnType => _returnType.Name;
-    public IReadOnlyList<FxParameter> Parameters => _parameters;
-    public FxScope Body => _body;
-
-    public override string ToString() => _name.Text.ToString();
-}
-
-class FxType
-{
-}
-
-class FxExpression
-{
-    string _literalString;
-
-    internal static FxExpression Literal(string literal)
-        => new FxExpression() { _literalString = literal };
-
-    public override string ToString() => _literalString;
-}
-class FxStatement
-{
-    ReadOnlyMemory<char> _functionName;
-    List<FxArgument> _arguments;
-
-    public FxStatement(ReadOnlyMemory<char> functionName, List<FxArgument> arguments)
-    {
-        _functionName = functionName;
-        _arguments = arguments;
-    }
-
-    public string Function => _functionName.ToString();
-    public IReadOnlyList<FxArgument> Arguments => _arguments;
-
-    public override string ToString() => _functionName.ToString();
-}
-class FxTypeReference
-{
-    public string Name { get; }
-
-    public FxTypeReference(ReadOnlyMemory<char> name)
-        => Name = name.ToString();
-
-    public override string ToString() => Name;
-}
-
-class FxArgument
-{
-    private string _literal;
-
-    public FxArgument(string literal)
-    {
-        _literal = literal;
-    }
-
-    public override string ToString() => _literal;
-}
-class FxScope
-{
-    List<FxStatement> _statements= new List<FxStatement>();
-
-    public FxScope(FxStatement statement)
-    {
-        _statements.Add(statement);
-    }
-
-    public IReadOnlyList<FxStatement> Statements => _statements;
-    public override string ToString() => _statements.Count.ToString();
-}
-
-class FxParameter
-{
-
-}
 
 class StringSliceComparer : IEqualityComparer<ReadOnlyMemory<char>>
 {
