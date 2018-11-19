@@ -88,6 +88,22 @@ namespace alan.Generators
 
         public void GenerateStatement(TextWriter writer, FxStatement statement)
         {
+            if (statement is FxCall call) { GenerateCall(writer, call); }
+            if (statement is FxConditional conditional) { GenerateConditional(writer, conditional); }
+            if (statement is FxReturn ret) { GenerateReturn(writer, ret); }
+        }
+
+        public void GenerateConditional(TextWriter writer, FxConditional statement)
+        {
+            throw new NotImplementedException();
+        }
+        public void GenerateReturn(TextWriter writer, FxReturn statement)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public void GenerateCall(TextWriter writer, FxCall statement)
+        {
             statement = Alias(statement);
             writer.Write('\t');
             writer.Write(statement.Function);
@@ -106,13 +122,13 @@ namespace alan.Generators
             }
         }
 
-        FxStatement Alias(FxStatement original)
+        FxCall Alias(FxCall original)
         {
             if (original.Function == "write") {
                 var arguments = new List<FxArgument>();
                 arguments.Add(new FxArgument("\"%s\""));
                 arguments.AddRange(original.Arguments);
-                return new FxStatement("printf".AsMemory(), arguments);
+                return new FxCall("printf".AsMemory(), arguments);
             }
             return original;
         }

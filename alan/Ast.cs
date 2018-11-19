@@ -12,12 +12,12 @@ namespace alan.Ast
     }
     class FxFunction
     {
-        private Token _name;
+        private ReadOnlyMemory<char> _name;
         private FxTypeReference _returnType;
-        private List<FxParameter> _parameters;
+        private List<FxVariable> _parameters;
         private FxScope _body;
 
-        public FxFunction(Token functionName, FxTypeReference returnType, List<FxParameter> parameters, FxScope functionBody)
+        public FxFunction(ReadOnlyMemory<char> functionName, FxTypeReference returnType, List<FxVariable> parameters, FxScope functionBody)
         {
             _name = functionName;
             _returnType = returnType;
@@ -25,12 +25,24 @@ namespace alan.Ast
             _body = functionBody;
         }
 
-        public string Name => _name.Text.ToString();
+        public string Name => _name.ToString();
         public string ReturnType => _returnType.Name;
-        public IReadOnlyList<FxParameter> Parameters => _parameters;
+        public IReadOnlyList<FxVariable> Parameters => _parameters;
         public FxScope Body => _body;
 
-        public override string ToString() => _name.Text.ToString();
+        public override string ToString() => _name.ToString();
+    }
+
+    class FxVariable
+    {
+        public FxTypeReference Type;
+        public ReadOnlyMemory<char> Name;
+
+        public FxVariable(FxTypeReference type, ReadOnlyMemory<char> name)
+        {
+            Type = type;
+            Name = name;
+        }
     }
 
     class FxType
@@ -39,19 +51,48 @@ namespace alan.Ast
 
     class FxExpression
     {
-        string _literalString;
+        ReadOnlyMemory<char> _literalString;
 
-        internal static FxExpression Literal(string literal)
+        internal static FxExpression Literal(ReadOnlyMemory<char> literal)
             => new FxExpression() { _literalString = literal };
 
-        public override string ToString() => _literalString;
+        public override string ToString() => _literalString.ToString();
     }
-    class FxStatement
+
+    abstract class FxStatement
+    {
+
+    }
+
+    class FxReturn : FxStatement
+    {
+        private FxExpression expression;
+
+        public FxReturn(FxExpression expression)
+        {
+            this.expression = expression;
+        }
+    }
+
+    class FxConditional : FxStatement
+    {
+        private ReadOnlyMemory<char> name;
+        private FxExpression expression;
+        private FxStatement statement;
+
+        public FxConditional(ReadOnlyMemory<char> name, FxExpression expression, FxStatement statement)
+        {
+            this.name = name;
+            this.expression = expression;
+            this.statement = statement;
+        }
+    }
+    class FxCall : FxStatement
     {
         ReadOnlyMemory<char> _functionName;
         List<FxArgument> _arguments;
 
-        public FxStatement(ReadOnlyMemory<char> functionName, List<FxArgument> arguments)
+        public FxCall(ReadOnlyMemory<char> functionName, List<FxArgument> arguments)
         {
             _functionName = functionName;
             _arguments = arguments;
@@ -85,19 +126,8 @@ namespace alan.Ast
     }
     class FxScope
     {
-        List<FxStatement> _statements = new List<FxStatement>();
+        public List<FxStatement> Statements { get; } = new List<FxStatement>();
 
-        public FxScope(FxStatement statement)
-        {
-            _statements.Add(statement);
-        }
-
-        public IReadOnlyList<FxStatement> Statements => _statements;
-        public override string ToString() => _statements.Count.ToString();
-    }
-
-    class FxParameter
-    {
-
+        public override string ToString() => Statements.Count.ToString();
     }
 }
