@@ -15,7 +15,7 @@ namespace Langbuilder.Tests
             var lexer = new Lexer();
             var tokens = lexer.GetTokens(source.AsMemory());
 
-            Assert.AreEqual(40, tokens.Length);
+            Assert.AreEqual(39, tokens.Length);
         }
     }
 }

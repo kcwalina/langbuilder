@@ -173,6 +173,6 @@ namespace langbuilder.Lexer
         }
 
         public override string ToString()
-            => Kind == TokenKind.Symbol ? $"{Kind},{Symbol}:{Text}" : $"{Kind},{Text}";
+            => Kind == TokenKind.Symbol ? $"{Kind}:{Symbol}:{Text}" : $"{Kind}:{Text}";
     }
 }
